@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cytra Host 🚀</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: #fff;
+      padding: 20px;
+    }
+    h1 {
+      color: #0ff;
+    }
+    .bot {
+      background: #222;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+    }
+    .btn {
+      padding: 5px 10px;
+      margin: 5px;
+      background: #0ff;
+      color: #000;
+      border: none;
+      cursor: pointer;
+    }
+    input, label {
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cytra Host Bot Dashboard</h1>
+
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label>Bot Name</label>
+    <input type="text" name="botName" required />
+    <label>ZIP File</label>
+    <input type="file" name="botZip" accept=".zip" required />
+    <button class="btn" type="submit">Upload Bot</button>
+  </form>
+
+  <div id="bots"></div>
+
+  <script>
+    async function loadBots() {
+      const res = await fetch('/bots');
+      const bots = await res.json();
+      const botsDiv = document.getElementById('bots');
+      botsDiv.innerHTML = '';
+      bots.forEach(bot => {
+        botsDiv.innerHTML += `
+          <div class="bot">
+            <b>${bot.name}</b> - Status: ${bot.status} <br>
+            <button class="btn" onclick="startBot('${bot.name}')">Start</button>
+            <button class="btn" onclick="stopBot('${bot.name}')">Stop</button>
+            <button class="btn" onclick="deleteBot('${bot.name}')">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    async function startBot(name) {
+      await fetch(`/bots/start/${name}`);
+      loadBots();
+    }
+
+    async function stopBot(name) {
+      await fetch(`/bots/stop/${name}`);
+      loadBots();
+    }
+
+    async function deleteBot(name) {
+      await fetch(`/bots/delete/${name}`, { method: 'DELETE' });
+      loadBots();
+    }
+
+    document.getElementById('uploadForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      await fetch('/bots/upload', {
+        method: 'POST',
+        body: data
+      });
+      form.reset();
+      loadBots();
+    };
+
+    loadBots();
+  </script>
+</body>
+</html>
